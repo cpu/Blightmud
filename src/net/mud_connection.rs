@@ -69,7 +69,7 @@ impl MudConnection {
         if tls {
             let stream = TcpStream::connect(uri)?;
             let connector = TlsConnector::builder()
-                .danger_accept_invalid_certs(true)
+                .danger_accept_invalid_certs(false)
                 .build()?;
             self.tls_stream = Some(RwStream::new(connector.connect(host, stream)?));
         } else {
