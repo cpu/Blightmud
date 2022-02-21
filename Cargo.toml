@@ -60,4 +60,4 @@ blightmud = { path = "/usr/bin/blightmud" }
 
 
 [patch.crates-io]
-speech-dispatcher-sys = { git = "https://https://gitlab.com/cpu/speech-dispatcher-rs", branch = "cpu-speechd-0.11.1-wip" }
+speech-dispatcher-sys = { git = "https://gitlab.com/cpu/speech-dispatcher-rs", branch = "cpu-speechd-0.11.1-wip" }
