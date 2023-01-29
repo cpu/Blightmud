@@ -9,6 +9,7 @@ use super::{
 };
 use crate::lua::fs::Fs;
 use crate::lua::prompt::Prompt;
+use crate::lua::prompt_mask::PromptMask;
 use crate::model::Completions;
 use crate::tools::util::expand_tilde;
 use crate::{event::Event, lua::servers::Servers, model::Line};
@@ -128,6 +129,7 @@ fn create_default_lua_state(builder: LuaScriptBuilder, store: Option<Store>) -> 
         globals.set("socket", SocketLib {})?;
         globals.set("servers", Servers {})?;
         globals.set("prompt", Prompt {})?;
+        globals.set("prompt_mask", PromptMask {})?;
 
         let lua_json = state
             .load(include_str!("../../resources/lua/json.lua"))

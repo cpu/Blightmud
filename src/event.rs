@@ -2,7 +2,7 @@ use crate::io::FSEvent;
 use crate::net::spawn_connect_thread;
 use crate::{audio::SourceOptions, model::Regex};
 use crate::{
-    model::{Connection, Line},
+    model::{Connection, Line, PromptMask},
     net::{spawn_receive_thread, spawn_transmit_thread},
     session::Session,
     tts::TTSEvent,
@@ -78,6 +78,7 @@ pub enum Event {
     TimedEvent(u32),
     TimerTick(u128),
     SetPromptInput(String),
+    SetPromptMask(PromptMask),
     UserInputBuffer(String, usize),
     FSEvent(FSEvent),
     FSMonitor(String),
@@ -277,6 +278,16 @@ impl EventHandler {
                     });
                 }
                 screen.print_prompt(&prompt);
+                Ok(())
+            }
+            Event::SetPromptMask(mask) => {
+                if let Ok(mut command_buffer) = self.session.command_buffer.lock() {
+                    command_buffer.set_mask(mask);
+                    screen.print_prompt_input(
+                        &command_buffer.get_masked_buffer(),
+                        command_buffer.get_pos(),
+                    );
+                }
                 Ok(())
             }
             Event::UserInputBuffer(input_buffer, pos) => {

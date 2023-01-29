@@ -352,7 +352,8 @@ For more info: https://github.com/LiquidityC/Blightmud/issues/173"#;
             | Event::Info(_)
             | Event::AddTag(_)
             | Event::ClearTags
-            | Event::UserInputBuffer(_, _) => {
+            | Event::UserInputBuffer(_, _)
+            | Event::SetPromptMask(_) => {
                 //tts_ctrl.handle_events(event.clone());
                 event_handler.handle_output_events(event, &mut screen)?;
             }
