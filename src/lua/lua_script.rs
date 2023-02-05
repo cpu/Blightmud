@@ -179,6 +179,9 @@ fn create_default_lua_state(builder: LuaScriptBuilder, store: Option<Store>) -> 
         state
             .load(include_str!("../../resources/lua/naws.lua"))
             .exec()?;
+        state
+            .load(include_str!("../../resources/lua/spellcheck.lua"))
+            .exec()?;
 
         let lua_gmcp = state
             .load(include_str!("../../resources/lua/gmcp.lua"))
