@@ -283,10 +283,9 @@ impl EventHandler {
             Event::SetPromptMask(mask) => {
                 if let Ok(mut command_buffer) = self.session.command_buffer.lock() {
                     command_buffer.set_mask(mask);
-                    screen.print_prompt_input(
-                        &command_buffer.get_masked_buffer(),
-                        command_buffer.get_pos(),
-                    );
+                    let mut prompt_input = self.session.prompt_input.lock().unwrap();
+                    *prompt_input = command_buffer.get_masked_buffer();
+                    screen.print_prompt_input(&prompt_input, command_buffer.get_pos());
                 }
                 Ok(())
             }
