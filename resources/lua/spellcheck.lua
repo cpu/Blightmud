@@ -32,5 +32,6 @@ prompt.add_prompt_listener(function (buf)
         end
     end
 
-    prompt_mask.set(mask)
+    local masked = prompt_mask.set(buf, mask)
+    blight.output(string.format("mask add: %s\n", masked))
 end)

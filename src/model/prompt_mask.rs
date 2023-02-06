@@ -1,3 +1,4 @@
+use log::debug;
 use mlua::{Integer as LuaInt, String as LuaString, Table as LuaTable};
 use std::collections::BTreeMap;
 
@@ -18,22 +19,24 @@ impl PromptMask {
     }
 
     pub fn mask_buffer(&self, buf: &[char]) -> String {
+        debug!("masking buf: {:?}", buf);
         let mut masked_buf = buf.to_owned();
         let mut offset = 0;
         for (idx, mask) in self.mask.iter() {
             // NB: idx subtracted by one to account for Lua one-indexing.
             let adjusted_idx = offset + (idx - 1) as usize;
-
-            // TODO(XXX): This is a HACK! Our mask/buf are falling out of sync somehow...
-            if adjusted_idx > masked_buf.len() {
-                return masked_buf.iter().collect::<String>();
-            }
-
+            debug!(
+                "idx: {}, mask: {:?}, len: {}, adjusted_idx: {}",
+                idx,
+                mask,
+                mask.len(),
+                adjusted_idx
+            );
             masked_buf.splice(adjusted_idx..adjusted_idx, mask.chars());
             offset += mask.len();
         }
 
-        masked_buf.iter().collect::<String>()
+        masked_buf.iter().collect()
     }
 }
 
