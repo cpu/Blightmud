@@ -10,19 +10,11 @@ pub(crate) trait PrintableCharsIterator<'a> {
 
 impl<'a> PrintableCharsIterator<'a> for &'a str {
     fn printable_chars(&self) -> PrintableChars<'a> {
-        PrintableChars {
-            iter: self.chars(),
-            parser: Parser::new(),
-            performer: Performer::new(),
-        }
+        PrintableChars::new(self)
     }
 
     fn printable_char_indices(&self) -> PrintableCharIndices<'a> {
-        PrintableCharIndices {
-            iter: self.char_indices(),
-            parser: Parser::new(),
-            performer: Performer::new(),
-        }
+        PrintableCharIndices::new(self)
     }
 }
 
@@ -47,6 +39,16 @@ pub(crate) struct PrintableChars<'a> {
     iter: Chars<'a>,
     parser: Parser,
     performer: Performer,
+}
+
+impl<'a> PrintableChars<'a> {
+    fn new(s: &'a str) -> Self {
+        PrintableChars {
+            iter: s.chars(),
+            parser: Parser::new(),
+            performer: Performer::new(),
+        }
+    }
 }
 
 impl<'a> Iterator for PrintableChars<'a> {
@@ -74,6 +76,16 @@ pub(crate) struct PrintableCharIndices<'a> {
     iter: CharIndices<'a>,
     parser: Parser,
     performer: Performer,
+}
+
+impl<'a> PrintableCharIndices<'a> {
+    fn new(s: &'a str) -> Self {
+        PrintableCharIndices {
+            iter: s.char_indices(),
+            parser: Parser::new(),
+            performer: Performer::new(),
+        }
+    }
 }
 
 impl<'a> Iterator for PrintableCharIndices<'a> {
