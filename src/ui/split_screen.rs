@@ -246,19 +246,6 @@ impl UserInterface for SplitScreen {
         // Sanity check
         debug_assert!(pos <= input.len());
 
-        let plain_mapped = input
-            .char_indices()
-            .map(|(i, c)| format!("{}:'{}' ", i as i32, c));
-        debug!("Plain: {:?}", plain_mapped.collect::<String>());
-
-        let fancy_mapped = input
-            .printable_char_indices()
-            .map(|(i, c)| format!("{}:'{}' ", i as i32, c));
-        debug!("Fancy: {:?}", fancy_mapped.collect::<String>());
-
-        let fancy = input.printable_chars().collect::<String>();
-        debug!("Fancy: {:?}", fancy);
-
         self.prompt_input = input.to_string();
         self.prompt_input_pos = pos;
 
@@ -266,16 +253,16 @@ impl UserInterface for SplitScreen {
         let mut pos = pos;
         let width = self.width as usize;
 
-        while input.chars().count() >= width && pos >= width {
-            if let Some((i, _)) = input.char_indices().nth(width) {
+        while input.printable_chars().count() >= width && pos >= width {
+            if let Some((i, _)) = input.printable_char_indices().nth(width) {
                 input = input.split_at(i).1;
             } else {
                 input = "";
             }
             pos -= width;
         }
-        if input.chars().count() >= width {
-            if let Some((i, _)) = input.char_indices().nth(width) {
+        if input.printable_chars().count() >= width {
+            if let Some((i, _)) = input.printable_char_indices().nth(width) {
                 input = input.split_at(i).0;
             }
         }

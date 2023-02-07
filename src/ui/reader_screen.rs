@@ -214,7 +214,9 @@ impl UserInterface for ReaderScreen {
 
     // This is fancy logic to make 'tdsr' less noisy
     fn print_prompt_input(&mut self, input: &str, pos: usize) {
-        let foo = input.printable_chars();
+        // Reader screens only operate on printable input characters (no term control sequences, e.g. ANSI colour).
+        let sanitized_input = input.printable_chars().collect::<String>();
+        let input = sanitized_input.as_str();
         let mut pos = pos;
         let width = self.width as usize;
         if let Some((existing, orig)) = &self.prompt_input {

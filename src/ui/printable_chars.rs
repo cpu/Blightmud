@@ -68,6 +68,7 @@ impl<'a> Iterator for PrintableChars<'a> {
     }
 }
 
+#[must_use = "iterators are lazy and do nothing unless consumed"]
 pub(crate) struct PrintableCharIndices<'a> {
     iter: CharIndices<'a>,
     parser: Parser,
