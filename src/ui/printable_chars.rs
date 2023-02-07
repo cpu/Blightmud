@@ -1,5 +1,6 @@
-use std::str::{CharIndices, Chars};
 extern crate vte;
+
+use std::str::{CharIndices, Chars};
 use vte::{Parser, Perform};
 
 pub(crate) trait PrintableCharsIterator<'a> {
