@@ -4,7 +4,6 @@ use vte::{Parser, Perform};
 
 pub(crate) trait PrintableCharsIterator<'a> {
     fn printable_chars(&self) -> PrintableChars<'a>;
-
     fn printable_char_indices(&self) -> PrintableCharIndices<'a>;
 }
 
@@ -54,14 +53,18 @@ impl<'a> Iterator for PrintableChars<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<char> {
-        let next = self.iter.next();
-        match next {
-            Some(c) => {
-                self.parser.advance(&mut self.performer, c as u8);
-                self.performer.c.take()
+        let mut next = self.iter.next();
+
+        while let Some(c) = next {
+            self.parser.advance(&mut self.performer, c as u8);
+            if let Some(pc) = self.performer.c.take() {
+                return Some(pc);
+            } else {
+                next = self.iter.next();
             }
-            None => None,
         }
+
+        return None;
     }
 }
 

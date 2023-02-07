@@ -256,6 +256,9 @@ impl UserInterface for SplitScreen {
             .map(|(i, c)| format!("{}:'{}' ", i as i32, c));
         debug!("Fancy: {:?}", fancy_mapped.collect::<String>());
 
+        let fancy = input.printable_chars().collect::<String>();
+        debug!("Fancy: {:?}", fancy);
+
         self.prompt_input = input.to_string();
         self.prompt_input_pos = pos;
 
