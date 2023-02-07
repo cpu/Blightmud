@@ -246,9 +246,15 @@ impl UserInterface for SplitScreen {
         // Sanity check
         debug_assert!(pos <= input.len());
 
-        let foo = input.printable_chars();
-        let res = foo.collect::<String>();
-        debug!("res: {:?}", res);
+        let plain_mapped = input
+            .char_indices()
+            .map(|(i, c)| format!("{}:'{}' ", i as i32, c));
+        debug!("Plain: {:?}", plain_mapped.collect::<String>());
+
+        let fancy_mapped = input
+            .printable_char_indices()
+            .map(|(i, c)| format!("{}:'{}' ", i as i32, c));
+        debug!("Fancy: {:?}", fancy_mapped.collect::<String>());
 
         self.prompt_input = input.to_string();
         self.prompt_input_pos = pos;

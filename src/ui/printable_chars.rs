@@ -1,15 +1,25 @@
-use std::str::Chars;
+use std::str::{CharIndices, Chars};
 extern crate vte;
 use vte::{Parser, Perform};
 
 pub(crate) trait PrintableCharsIterator<'a> {
     fn printable_chars(&self) -> PrintableChars<'a>;
+
+    fn printable_char_indices(&self) -> PrintableCharIndices<'a>;
 }
 
 impl<'a> PrintableCharsIterator<'a> for &'a str {
     fn printable_chars(&self) -> PrintableChars<'a> {
         PrintableChars {
             iter: self.chars(),
+            parser: Parser::new(),
+            performer: Performer::new(),
+        }
+    }
+
+    fn printable_char_indices(&self) -> PrintableCharIndices<'a> {
+        PrintableCharIndices {
+            iter: self.char_indices(),
             parser: Parser::new(),
             performer: Performer::new(),
         }
@@ -34,7 +44,7 @@ impl Perform for Performer {
 
 #[must_use = "iterators are lazy and do nothing unless consumed"]
 pub(crate) struct PrintableChars<'a> {
-    pub(super) iter: Chars<'a>,
+    iter: Chars<'a>,
     parser: Parser,
     performer: Performer,
 }
@@ -52,5 +62,31 @@ impl<'a> Iterator for PrintableChars<'a> {
             }
             None => None,
         }
+    }
+}
+
+pub(crate) struct PrintableCharIndices<'a> {
+    iter: CharIndices<'a>,
+    parser: Parser,
+    performer: Performer,
+}
+
+impl<'a> Iterator for PrintableCharIndices<'a> {
+    type Item = (usize, char);
+
+    #[inline]
+    fn next(&mut self) -> Option<(usize, char)> {
+        let mut next = self.iter.next();
+
+        while let Some((offset, c)) = next {
+            self.parser.advance(&mut self.performer, c as u8);
+            if let Some(c) = self.performer.c.take() {
+                return Some((offset, c));
+            } else {
+                next = self.iter.next();
+            }
+        }
+
+        return None;
     }
 }
