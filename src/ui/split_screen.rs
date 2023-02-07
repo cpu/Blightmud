@@ -6,7 +6,6 @@ use crate::io::SaveData;
 use crate::model::{Settings, HIDE_TOPBAR};
 use crate::{model::Line, model::Regex, ui::ansi::*, ui::printable_chars::PrintableCharsIterator};
 use anyhow::Result;
-use log::debug;
 use std::collections::HashSet;
 use std::io::Write;
 use termion::color::{self, Bg, Fg};

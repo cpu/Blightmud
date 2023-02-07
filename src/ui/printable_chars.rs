@@ -64,7 +64,7 @@ impl<'a> Iterator for PrintableChars<'a> {
             }
         }
 
-        return None;
+        None
     }
 }
 
@@ -91,6 +91,6 @@ impl<'a> Iterator for PrintableCharIndices<'a> {
             }
         }
 
-        return None;
+        None
     }
 }
