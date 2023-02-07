@@ -19,19 +19,15 @@ prompt.add_prompt_listener(function (buf)
         end
     end
 
-    blight.output(string.format("\nbulding mask for '%s' (len: %d)\n", buf, #buf))
     local mask = {}
     for idx, word in pairs(words) do
         local even = #word % 2 == 0
         local off_idx = idx + #word
-        blight.output(string.format("start: %d word: '%s' len: %d even: %s off_idx: %d\n",
-                idx, word, #word, tostring(even), off_idx))
         if even then
             mask[idx] = red_on
             mask[off_idx] = ansi_off
         end
     end
 
-    local masked = prompt_mask.set(buf, mask)
-    blight.output(string.format("mask add: %s\n", masked))
+    prompt_mask.set(buf, mask)
 end)
