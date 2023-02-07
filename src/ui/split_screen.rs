@@ -4,8 +4,9 @@ use super::user_interface::TerminalSizeError;
 use super::wrap_line;
 use crate::io::SaveData;
 use crate::model::{Settings, HIDE_TOPBAR};
-use crate::{model::Line, model::Regex, ui::ansi::*};
+use crate::{model::Line, model::Regex, ui::ansi::*, ui::printable_chars::PrintableCharsIterator};
 use anyhow::Result;
+use log::debug;
 use std::collections::HashSet;
 use std::io::Write;
 use termion::color::{self, Bg, Fg};
@@ -245,13 +246,17 @@ impl UserInterface for SplitScreen {
         // Sanity check
         debug_assert!(pos <= input.len());
 
+        let foo = input.printable_chars();
+        let res = foo.collect::<String>();
+        debug!("res: {:?}", res);
+
         self.prompt_input = input.to_string();
         self.prompt_input_pos = pos;
 
         let mut input = input;
         let mut pos = pos;
         let width = self.width as usize;
-        /*
+
         while input.chars().count() >= width && pos >= width {
             if let Some((i, _)) = input.char_indices().nth(width) {
                 input = input.split_at(i).1;
@@ -264,7 +269,7 @@ impl UserInterface for SplitScreen {
             if let Some((i, _)) = input.char_indices().nth(width) {
                 input = input.split_at(i).0;
             }
-        }*/
+        }
         self.cursor_prompt_pos = pos as u16 + 1;
         write!(
             self.screen,

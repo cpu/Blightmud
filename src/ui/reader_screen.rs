@@ -8,7 +8,9 @@ use termion::{
 
 use crate::{
     model::{Line, Regex},
-    ui::{DisableOriginMode, ResetScrollRegion, ScrollRegion},
+    ui::{
+        printable_chars::PrintableCharsIterator, DisableOriginMode, ResetScrollRegion, ScrollRegion,
+    },
 };
 
 use super::{
@@ -212,6 +214,7 @@ impl UserInterface for ReaderScreen {
 
     // This is fancy logic to make 'tdsr' less noisy
     fn print_prompt_input(&mut self, input: &str, pos: usize) {
+        let foo = input.printable_chars();
         let mut pos = pos;
         let width = self.width as usize;
         if let Some((existing, orig)) = &self.prompt_input {
