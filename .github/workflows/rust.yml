@@ -46,12 +46,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/bin
           key: ${{ matrix.os }}-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Updating repository
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt-get update
       - name: Installing dependencies
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt-get install libasound2-dev libspeechd-dev
+        run: sudo apt-get install libasound2-dev libspeechd-dev libclang-dev libhunspell-dev
       - name: Setup toolchain
         if: ${{ matrix.toolchain != 'nightly' }}
         uses: actions-rs/toolchain@v1
