@@ -98,6 +98,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Installing dependencies
+        run: |
+          brew update
+          brew install hunspell
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
         with:
