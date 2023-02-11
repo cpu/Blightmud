@@ -73,12 +73,18 @@ jobs:
         run: cargo test --locked
       - name: Test (all features)
         if: ${{ matrix.os == 'macos-latest' }}
+        env:
+          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo test --locked --all-features
       - name: Test release (all features)
         if: ${{ matrix.os == 'macos-latest' }}
+        env:
+          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo test --release --locked --all-features
       - name: Build
         run: cargo build --release --locked
       - name: Build (all features)
         if: ${{ matrix.os == 'macos-latest' }}
+        env:
+          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo build --release --locked --all-features
