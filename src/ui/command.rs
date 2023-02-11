@@ -87,6 +87,10 @@ impl CommandBuffer {
         self.cursor_pos
     }
 
+    pub fn set_pos(&mut self, pos: usize) {
+        self.cursor_pos = pos
+    }
+
     fn submit(&mut self) -> String {
         // Insert history
         let cmd = if !self.buffer.is_empty() {
@@ -449,6 +453,9 @@ pub fn spawn_input_thread(session: Session) -> thread::JoinHandle<()> {
                                 );
                             }
                             if orig_len == buffer.buffer.len() && orig_pos != buffer.get_pos() {
+                                if let Ok(mut luascript) = script.lock() {
+                                    luascript.set_cursor_pos(buffer.get_pos());
+                                }
                                 writer
                                     .send(Event::UserInputCursor(buffer.get_pos()))
                                     .unwrap();
@@ -456,6 +463,7 @@ pub fn spawn_input_thread(session: Session) -> thread::JoinHandle<()> {
                                 if let Ok(mut luascript) = script.lock() {
                                     luascript.set_prompt_mask_content(&buffer.prompt_mask);
                                     luascript.set_prompt_content(buffer.get_buffer());
+                                    luascript.set_cursor_pos(buffer.get_pos());
                                 }
                                 writer
                                     .send(Event::UserInputBuffer(

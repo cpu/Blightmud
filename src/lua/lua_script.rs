@@ -112,6 +112,7 @@ fn create_default_lua_state(builder: LuaScriptBuilder, store: Option<Store>) -> 
         state.set_named_registry_value(FS_LISTENERS, state.create_table()?)?;
         state.set_named_registry_value(SCRIPT_RESET_LISTENERS, state.create_table()?)?;
         state.set_named_registry_value(PROMPT_CONTENT, String::new())?;
+        state.set_named_registry_value(PROMPT_CURSOR_POS, 0)?;
         state.set_named_registry_value(PROMPT_INPUT_LISTENER_TABLE, state.create_table()?)?;
         state.set_named_registry_value(STATUS_AREA_HEIGHT, 1)?;
 
@@ -288,6 +289,13 @@ impl LuaScript {
                 .set_named_registry_value(PROMPT_CONTENT, content.clone())?;
             Ok(())
         });
+    }
+
+    pub fn set_cursor_pos(&mut self, pos: usize) {
+        // NB: pos registry value is set +1 to account for Lua 1-indexing.
+        self.state
+            .set_named_registry_value(PROMPT_CURSOR_POS, pos + 1)
+            .unwrap();
     }
 
     pub fn set_prompt_mask_content(&mut self, mask: &model::PromptMask) {

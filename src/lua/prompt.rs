@@ -4,7 +4,7 @@ use crate::event::Event;
 
 use super::{
     backend::Backend,
-    constants::{BACKEND, PROMPT_CONTENT, PROMPT_INPUT_LISTENER_TABLE},
+    constants::{BACKEND, PROMPT_CONTENT, PROMPT_CURSOR_POS, PROMPT_INPUT_LISTENER_TABLE},
 };
 
 #[derive(Debug, Clone)]
@@ -21,8 +21,21 @@ impl UserData for Prompt {
             ctx.set_named_registry_value(PROMPT_CONTENT, line)?;
             Ok(())
         });
+        methods.add_function("set_cursor", |ctx, offset: u32| {
+            let backend: Backend = ctx.named_registry_value(BACKEND)?;
+            ctx.set_named_registry_value(PROMPT_CURSOR_POS, offset as usize)?;
+            let offset = offset - 1; // NB: Converting from Lua 1-indexing.
+            backend
+                .writer
+                .send(Event::SetPromptInputCursor(offset))
+                .unwrap();
+            Ok(())
+        });
         methods.add_function("get", |ctx, ()| -> mlua::Result<String> {
             ctx.named_registry_value(PROMPT_CONTENT)
+        });
+        methods.add_function("get_cursor", |ctx, ()| -> mlua::Result<u32> {
+            ctx.named_registry_value::<_, u32>(PROMPT_CURSOR_POS)
         });
         methods.add_function(
             "add_prompt_listener",

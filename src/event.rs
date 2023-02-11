@@ -78,6 +78,7 @@ pub enum Event {
     TimedEvent(u32),
     TimerTick(u128),
     SetPromptInput(String),
+    SetPromptInputCursor(u32),
     SetPromptMask(PromptMask),
     ClearPromptMask,
     UserInputBuffer(String, usize),
@@ -302,6 +303,20 @@ impl EventHandler {
                     let mut prompt_input = self.session.prompt_input.lock().unwrap();
                     *prompt_input = command_buffer.get_masked_buffer();
                     screen.print_prompt_input(&prompt_input, command_buffer.get_pos());
+                }
+                Ok(())
+            }
+            Event::SetPromptInputCursor(pos) => {
+                if let Ok(mut command_buffer) = self.session.command_buffer.lock() {
+                    let prompt_input = self.session.prompt_input.lock().unwrap();
+                    let pos = pos as usize;
+                    if pos <= prompt_input.len() {
+                        command_buffer.set_pos(pos);
+                        screen.print_prompt_input(
+                            command_buffer.get_masked_buffer().as_str(),
+                            command_buffer.get_pos(),
+                        )
+                    }
                 }
                 Ok(())
             }

@@ -17,6 +17,18 @@ Sets the line typed in the prompt. Replacing any current data.
 
 ##
 
+**prompt.set_cursor(offset)***
+Sets the prompt input area cursor to the provided offset if it
+is within the bounds of the input text that has been entered.
+
+##
+
+**prompt.get_cursor() -> offset**
+Returns the prompt input area cursor's offset in the text that
+has been entered into the prompt buffer.
+
+##
+
 ***prompt.add_prompt_listener(callback)***
 Registers a callback that is triggered when data has been typed on the prompt
 line, or set with `prompt.set`.
