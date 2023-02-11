@@ -46,6 +46,7 @@ git2 = "0.16.1"
 rodio = "0.16.0"
 notify-debouncer-mini = "0.2.1"
 hunspell-rs = "0.4.0"
+hunspell-sys = { version = "0.3.0", features = ['bundled'] }
 
 [dev-dependencies]
 mockall = "0.11.3"

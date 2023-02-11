@@ -241,6 +241,7 @@ dependencies = [
  "git2",
  "human-panic",
  "hunspell-rs",
+ "hunspell-sys",
  "lazy_static",
  "libtelnet-rs",
  "log",
