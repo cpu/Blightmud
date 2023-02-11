@@ -46,14 +46,12 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/bin
           key: ${{ matrix.os }}-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Updating repository
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt-get update
       - name: Installing dependencies
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt-get install libasound2-dev libspeechd-dev libclang-dev libhunspell-dev
-      - name: Installing dependencies
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          brew update
-          brew install hunspell
+        run: sudo apt-get install libasound2-dev libspeechd-dev
       - name: Setup toolchain
         if: ${{ matrix.toolchain != 'nightly' }}
         uses: actions-rs/toolchain@v1
@@ -73,18 +71,12 @@ jobs:
         run: cargo test --locked
       - name: Test (all features)
         if: ${{ matrix.os == 'macos-latest' }}
-        env:
-          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo test --locked --all-features
       - name: Test release (all features)
         if: ${{ matrix.os == 'macos-latest' }}
-        env:
-          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo test --release --locked --all-features
       - name: Build
         run: cargo build --release --locked
       - name: Build (all features)
         if: ${{ matrix.os == 'macos-latest' }}
-        env:
-          BINDGEN_EXTRA_CLANG_ARGS: '-idirafter /usr/local/Cellar/hunspell/1.7.2/include'
         run: cargo build --release --locked --all-features

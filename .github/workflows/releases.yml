@@ -18,8 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install deps
-        run: sudo apt-get update && sudo apt-get install \
-          libasound-dev libudev-dev libclang-dev libhunspell-dev pkg-config
+        run: sudo apt-get update && sudo apt-get install libasound-dev libudev-dev pkg-config
       - name: Install cargo-deb
         run: cargo install cargo-deb || true
       - name: Package DEB
@@ -49,8 +48,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install deps
-        run: sudo apt-get update && sudo apt-get install \
-          libasound-dev libudev-dev libclang-dev libhunspell-dev pkg-config rpm
+        run: sudo apt-get update && sudo apt-get install libasound-dev libudev-dev pkg-config rpm
       - name: Install cargo-deb
         run: cargo install cargo-deb || true
       - name: Install cargo-rpm
@@ -98,10 +96,6 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Installing dependencies
-        run: |
-          brew update
-          brew install hunspell
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
         with:
