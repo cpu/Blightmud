@@ -1,7 +1,6 @@
 use anyhow::Result;
 use lazy_static::lazy_static;
 use log::debug;
-use native_tls::{TlsConnector, TlsStream};
 use std::{
     io::Read,
     io::Write,
@@ -11,6 +10,8 @@ use std::{
 };
 
 use crate::net::open_tcp_stream;
+use crate::net::tls::connect_tls;
+use crate::net::tls::TlsStream;
 
 use super::RwStream;
 
@@ -18,7 +19,7 @@ use super::RwStream;
 pub struct MudConnection {
     pub id: u16,
     stream: Option<RwStream<TcpStream>>,
-    tls_stream: Option<RwStream<TlsStream<TcpStream>>>,
+    tls_stream: Option<TlsStream>,
     pub host: String,
     pub port: u16,
     pub tls: bool,
@@ -48,7 +49,12 @@ impl MudConnection {
 
     fn get_input_stream(&self) -> Option<&Arc<Mutex<dyn Read + Send>>> {
         if let Some(stream) = &self.tls_stream {
-            Some(&stream.input_stream)
+            match stream {
+                #[cfg(feature = "default-tls")]
+                TlsStream::NativeTLS(s) => Some(&s.input_stream),
+                #[cfg(feature = "rustls-tls")]
+                TlsStream::Rustls(s) => Some(&s.input_stream),
+            }
         } else {
             self.stream.as_ref().map(|stream| &stream.input_stream)
         }
@@ -56,7 +62,12 @@ impl MudConnection {
 
     fn get_output_stream(&self) -> Option<&Arc<Mutex<dyn Write + Send>>> {
         if let Some(stream) = &self.tls_stream {
-            Some(&stream.output_stream)
+            match stream {
+                #[cfg(feature = "default-tls")]
+                TlsStream::NativeTLS(s) => Some(&s.output_stream),
+                #[cfg(feature = "rustls-tls")]
+                TlsStream::Rustls(s) => Some(&s.output_stream),
+            }
         } else {
             self.stream.as_ref().map(|stream| &stream.output_stream)
         }
@@ -75,10 +86,7 @@ impl MudConnection {
 
         let stream = open_tcp_stream(&self.host, self.port)?;
         if tls {
-            let connector = TlsConnector::builder()
-                .danger_accept_invalid_certs(!verify_cert)
-                .build()?;
-            self.tls_stream = Some(RwStream::new(connector.connect(host, stream)?));
+            self.tls_stream = Some(connect_tls(host, verify_cert, stream)?);
         } else {
             self.stream = Some(RwStream::new(stream));
         }
@@ -94,8 +102,18 @@ impl MudConnection {
             self.stream = None;
         } else if let Some(stream) = &self.tls_stream {
             debug!("Disconnecting from {}:{}", self.host, self.port);
-            stream.inner_mut().shutdown()?;
-            stream.inner_mut().get_mut().shutdown(Shutdown::Both)?;
+            match stream {
+                #[cfg(feature = "default-tls")]
+                TlsStream::NativeTLS(s) => {
+                    s.inner_mut().shutdown()?;
+                    s.inner_mut().get_mut().shutdown(Shutdown::Both)?;
+                }
+                #[cfg(feature = "rustls-tls")]
+                TlsStream::Rustls(s) => {
+                    s.inner_mut().conn.send_close_notify();
+                }
+            }
+
             debug!("Disconnected from {}:{}", self.host, self.port);
             self.tls_stream = None;
         }
