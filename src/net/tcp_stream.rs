@@ -1,3 +1,4 @@
+use crate::net::CertificateValidation;
 use crate::{event::Event, model::Connection, net::TelnetHandler, session::Session};
 use flate2::read::ZlibDecoder;
 use libtelnet_rs::bytes::Bytes;
@@ -81,7 +82,12 @@ pub fn spawn_connect_thread(
                 tls,
                 verify_cert,
             } = connection;
-            if !session.connect(&host, port, tls, verify_cert) {
+            let tls_validation = if verify_cert {
+                CertificateValidation::Enabled
+            } else {
+                CertificateValidation::DangerousDisabled
+            };
+            if !session.connect(&host, port, tls, tls_validation) {
                 session
                     .main_writer
                     .send(Event::Error(format!("Failed to connect to {host}:{port}")))
