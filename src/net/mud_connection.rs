@@ -1,7 +1,6 @@
 use anyhow::Result;
 use lazy_static::lazy_static;
 use log::debug;
-use native_tls::{TlsConnector, TlsStream};
 use std::{
     io::Read,
     io::Write,
@@ -11,6 +10,7 @@ use std::{
 };
 
 use crate::net::open_tcp_stream;
+use crate::net::tls::TlsStream;
 
 use super::RwStream;
 
@@ -18,7 +18,7 @@ use super::RwStream;
 pub struct MudConnection {
     pub id: u16,
     stream: Option<RwStream<TcpStream>>,
-    tls_stream: Option<RwStream<TlsStream<TcpStream>>>,
+    tls_stream: Option<TlsStream>,
     pub host: String,
     pub port: u16,
     pub tls: bool,
@@ -75,10 +75,7 @@ impl MudConnection {
 
         let stream = open_tcp_stream(&self.host, self.port)?;
         if tls {
-            let connector = TlsConnector::builder()
-                .danger_accept_invalid_certs(!verify_cert)
-                .build()?;
-            self.tls_stream = Some(RwStream::new(connector.connect(host, stream)?));
+            self.tls_stream = Some(TlsStream::tls_init(stream, host, verify_cert)?);
         } else {
             self.stream = Some(RwStream::new(stream));
         }
@@ -94,8 +91,7 @@ impl MudConnection {
             self.stream = None;
         } else if let Some(stream) = &self.tls_stream {
             debug!("Disconnecting from {}:{}", self.host, self.port);
-            stream.inner_mut().shutdown()?;
-            stream.inner_mut().get_mut().shutdown(Shutdown::Both)?;
+            stream.inner_mut().conn.send_close_notify();
             debug!("Disconnected from {}:{}", self.host, self.port);
             self.tls_stream = None;
         }

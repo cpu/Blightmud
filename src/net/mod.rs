@@ -14,4 +14,5 @@ mod output_buffer;
 mod rw_stream;
 mod tcp_stream;
 mod telnet;
+mod tls;
 mod util;
