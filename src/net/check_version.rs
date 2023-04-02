@@ -1,19 +1,20 @@
 use crate::event::Event;
 use crate::VERSION;
 use anyhow::Result;
-use curl::easy::Easy;
+use git2::build::{CloneLocal, RepoBuilder};
+use git2::Repository;
+use std::cmp::Ordering;
 use std::{sync::mpsc::Sender, thread};
+
+const BLIGHTMUD_GIT_URL: &str = "https://github.com/Blightmud/Blightmud.git";
+const BLIGHTMUD_RELEASE_URL_PREFIX: &str = "https://github.com/Blightmud/Blightmud/releases/tag/";
 
 #[cfg(test)]
 use mockall::automock;
 
-fn diff_versions(old: &str, new: &str) -> bool {
-    old < new
-}
-
 #[cfg_attr(test, automock)]
 trait FetchVersionInformation {
-    fn fetch(&self) -> Result<Vec<u8>>;
+    fn fetch(&self) -> Vec<String>;
 }
 
 struct Fetcher {}
@@ -24,47 +25,65 @@ impl Fetcher {
     }
 }
 
-impl FetchVersionInformation for Fetcher {
-    fn fetch(&self) -> Result<Vec<u8>> {
-        let url = "https://api.github.com/repos/blightmud/blightmud/releases/latest";
-        let mut response_data = Vec::new();
-        let mut easy = Easy::new();
-        easy.url(url)?;
-        easy.get(true)?;
-        easy.useragent("curl")?;
-
-        {
-            let mut transfer = easy.transfer();
-            transfer
-                .write_function(|data| {
-                    response_data.extend_from_slice(data);
-                    Ok(data.len())
-                })
-                .ok();
-            transfer.perform()?;
+impl Fetcher {
+    fn blightmud_repo() -> Result<Repository> {
+        let clone_dir = crate::DATA_DIR.join("bare");
+        if clone_dir.is_dir() {
+            let repo = Repository::discover(clone_dir)?;
+            {
+                let mut origin_remote = repo.find_remote("origin")?;
+                origin_remote.fetch(&["main"], None, None)?;
+            }
+            Ok(repo)
+        } else {
+            let mut rbuilder = RepoBuilder::new();
+            rbuilder.bare(true);
+            rbuilder.clone_local(CloneLocal::Auto);
+            Ok(rbuilder.clone(BLIGHTMUD_GIT_URL, &clone_dir)?)
         }
-        Ok(response_data)
+    }
+}
+
+impl FetchVersionInformation for Fetcher {
+    fn fetch(&self) -> Vec<String> {
+        // Best-effort fetch tags of the form "v*" from the Blightmud repo. Provide an empty
+        // vec if something goes wrong.
+        let mut version_tags = Fetcher::blightmud_repo()
+            .map(|repo| {
+                repo.tag_names(Some("v*"))
+                    .map(|tag_array| {
+                        tag_array
+                            .iter()
+                            .filter_map(|opt_t| opt_t.map(|tag| tag.to_owned()))
+                            .collect::<Vec<String>>()
+                    })
+                    .unwrap_or(Vec::default())
+            })
+            .unwrap_or(Vec::default());
+
+        // Sort in descending order so newest is first.
+        version_tags.sort_by(|a, b| b.cmp(a));
+        version_tags
     }
 }
 
 fn run(writer: Sender<Event>, current: &str, fetcher: &dyn FetchVersionInformation) {
-    if let Ok(data) = fetcher.fetch() {
-        if let Ok(json) = serde_json::from_slice(&data) {
-            let json: serde_json::Value = json;
-            let new: String = json["tag_name"].as_str().unwrap_or_default().to_string();
-            let url: String = json["html_url"].as_str().unwrap_or_default().to_string();
-            if diff_versions(current, &new) {
-                writer
-                    .send(Event::Info(format!(
-                        "There is a newer version of Blightmud available. (current: {current}, new: {new})"
-                    )))
-                    .unwrap();
-                writer
-                    .send(Event::Info(format!(
-                        "Visit {url} to upgrade to latest version"
-                    )))
-                    .unwrap();
-            }
+    // If we fetched tags and found a latest version...
+    if let Some(latest) = fetcher.fetch().first() {
+        // And the latest version is greater than the current version...
+        if let Ordering::Greater = latest.cmp(&current.to_owned()) {
+            // Then write information to tell the user where to get the upgrade.
+            let url = format!("{}{}", BLIGHTMUD_RELEASE_URL_PREFIX, latest);
+            writer
+                .send(Event::Info(format!(
+                    "There is a newer version of Blightmud available. (current: {current}, new: {latest})"
+                )))
+                .unwrap();
+            writer
+                .send(Event::Info(format!(
+                    "Visit {url} to upgrade to latest version"
+                )))
+                .unwrap();
         }
     }
 }
@@ -82,12 +101,8 @@ pub fn check_latest_version(writer: Sender<Event>) {
 
 #[cfg(test)]
 mod test_version_diff {
-
-    use std::sync::mpsc::{channel, Receiver};
-
-    use anyhow::bail;
-
     use super::*;
+    use std::sync::mpsc::{channel, Receiver};
 
     #[test]
     fn test_check() {
@@ -95,7 +110,11 @@ mod test_version_diff {
         let (writer, reader): (Sender<Event>, Receiver<Event>) = channel();
 
         fetcher.expect_fetch().times(1).returning(|| {
-            Ok(br#"{"tag_name":"v10.0.0","html_url":"http://example.com"}"#.to_vec())
+            vec![
+                "v10.0.0".to_owned(),
+                "v9.0.0".to_owned(),
+                "v8.0.0".to_owned(),
+            ]
         });
 
         run(writer, "v1.0.0", &fetcher);
@@ -108,7 +127,7 @@ mod test_version_diff {
         );
         assert_eq!(
             reader.try_recv().unwrap(),
-            Event::Info("Visit http://example.com to upgrade to latest version".to_string())
+            Event::Info("Visit https://github.com/Blightmud/Blightmud/releases/tag/v10.0.0 to upgrade to latest version".to_string())
         );
     }
 
@@ -120,21 +139,7 @@ mod test_version_diff {
         fetcher
             .expect_fetch()
             .times(1)
-            .returning(|| Ok(br#"{"tag_name":"v1.0.0","html_url":"http://example.com"}"#.to_vec()));
-
-        run(writer, "v1.0.0", &fetcher);
-        assert!(reader.try_recv().is_err());
-    }
-
-    #[test]
-    fn test_bad_data() {
-        let mut fetcher = MockFetchVersionInformation::new();
-        let (writer, reader): (Sender<Event>, Receiver<Event>) = channel();
-
-        fetcher
-            .expect_fetch()
-            .times(1)
-            .returning(|| Ok(br#"{}"#.to_vec()));
+            .returning(|| vec!["v1.0.0".to_owned(), "v0.9.9".to_owned()]);
 
         run(writer, "v1.0.0", &fetcher);
         assert!(reader.try_recv().is_err());
@@ -145,17 +150,9 @@ mod test_version_diff {
         let mut fetcher = MockFetchVersionInformation::new();
         let (writer, reader): (Sender<Event>, Receiver<Event>) = channel();
 
-        fetcher.expect_fetch().times(1).returning(|| bail!("Error"));
+        fetcher.expect_fetch().times(1).returning(|| Vec::default());
 
         run(writer, "v1.0.0", &fetcher);
         assert!(reader.try_recv().is_err());
-    }
-
-    #[test]
-    fn test_version_diff() {
-        assert!(diff_versions("v0.1.0", "v0.1.1"));
-        assert!(!diff_versions("v0.1.2", "v0.1.1"));
-        assert!(diff_versions("v0.1.0", "v0.3.0"));
-        assert!(diff_versions("v0.3.0", "v3.0.0"));
     }
 }
