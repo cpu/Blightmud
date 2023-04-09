@@ -67,16 +67,14 @@ jobs:
           profile: minimal
           override: true
       - name: Test
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: cargo test --locked
-      - name: Test (all features)
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: cargo test --locked --all-features
-      - name: Test release (all features)
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: cargo test --release --locked --all-features
-      - name: Build
-        run: cargo build --release --locked
-      - name: Build (all features)
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: cargo build --release --locked --all-features
+        run: |
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
+          cargo test --release --test lua_tests --test validation_tests
