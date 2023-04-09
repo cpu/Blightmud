@@ -90,6 +90,15 @@ mod test_version_diff {
     use super::*;
 
     #[test]
+    fn test_thread() {
+        let (main_writer, _): (Sender<Event>, Receiver<Event>) = channel();
+
+        for _ in 0..10 {
+            check_latest_version(main_writer.clone());
+        }
+    }
+
+    #[test]
     fn test_check() {
         let mut fetcher = MockFetchVersionInformation::new();
         let (writer, reader): (Sender<Event>, Receiver<Event>) = channel();
