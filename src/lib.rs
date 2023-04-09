@@ -282,7 +282,7 @@ fn run(main_thread_read: Receiver<Event>, mut session: Session, rt: RuntimeConfi
             .send(Event::LoadScript(script.to_str().unwrap().to_string()))?;
     }
 
-    check_latest_version(session.main_writer.clone());
+    //check_latest_version(session.main_writer.clone());
     if cfg!(not(debug_assertions)) {
         migrate_v2_settings_and_servers(session.main_writer.clone());
     }
