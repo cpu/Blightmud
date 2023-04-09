@@ -63,13 +63,13 @@ jobs:
           override: true
       - name: Test
         run: |
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
-          cargo test --release --test lua_tests --test validation_tests
+          cargo test --test lua_tests --test validation_tests
+          cargo test --test lua_tests --test validation_tests
+          cargo test --test lua_tests --test validation_tests
+          cargo test --test lua_tests --test validation_tests
+          cargo test --test lua_tests --test validation_tests
+          cargo test
+          cargo test
+          cargo test
+          cargo test
+          cargo test
