@@ -57,6 +57,9 @@ mockall_double = "0.3.0"
 rustls-pemfile = "1.0.3"
 env_logger = "0.10.0"
 
+[profile.dev.package.hunspell-sys]
+opt-level = 3
+
 [package.metadata.rpm]
 package = "blightmud"
 
