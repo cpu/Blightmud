@@ -3,6 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
   outputs = inputs:
@@ -15,12 +16,12 @@
           buildDeps = with pkgs; [ pkg-config rustPlatform.bindgenHook ];
           devDeps = with pkgs; [
             gdb
-            rustc
-            cargo
-            cargo-audit
-            clippy
-            rustfmt
             asciinema
+            # Dev env uses nightly by default.
+            (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
+            # Comment out the line above and uncomment the line below to use 
+            # latest stable instead:
+            # rust-bin.stable.latest.default
           ];
           withFeatures = features: {
             inherit (cargoToml.package) name version;
@@ -32,6 +33,10 @@
             doCheck = false; # Some tests require networking
           };
         in {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [ (import inputs.rust-overlay) ];
+          };
           packages.default = self'.packages.blightmud-tts;
           # Blightmud w/ text to speech enabled.
           packages.blightmud-tts =
