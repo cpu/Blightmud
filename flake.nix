@@ -20,7 +20,13 @@
           withFeatures = features: {
             inherit (cargoToml.package) name version;
             src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
+            cargoLock = {
+              lockFile = ./Cargo.lock;
+              outputHashes = {
+                "libtelnet-rs-2.0.0" =
+                  "sha256-a9wx+Y0A6X0lrlBUTu6OQHIBaUJzkfS6n+x9DaazymM=";
+              };
+            };
             buildFeatures = features;
             nativeBuildInputs = buildDeps;
             buildInputs = runtimeDeps;
