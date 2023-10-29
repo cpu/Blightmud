@@ -65,3 +65,7 @@ buildflags = ["--release"]
 
 [package.metadata.rpm.targets]
 blightmud = { path = "/usr/bin/blightmud" }
+
+[patch.crates-io]
+# TODO(@cpu): Remove this once a libtelnet-rs release with a fix is available.
+libtelnet-rs = { git = "https://github.com/cpu/libtelnet-rs.git", branch = "cpu-fix-subneg-event-type-SE-handling" }
