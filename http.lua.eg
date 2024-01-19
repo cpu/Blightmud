@@ -1,0 +1,19 @@
+blight.output("!!! Starting quick Blightmud Lua HTTP Demo...")
+
+local package_path = os.getenv("BM_LUA_PATH")
+local package_cpath = os.getenv("BM_LUA_CPATH")
+
+blight.output("!!! Appending BM_LUA_PATH=".. package_path .. " to package.path")
+package.path = package.path .. ";" .. package_path
+
+blight.output("!!! Appending BM_LUA_CPATH=".. package_cpath .. " to package.cpath")
+package.cpath = package.cpath .. ";" .. package_cpath
+
+blight.output("!!! Constructing GET")
+local http_request = require "http.request"
+local headers, stream = assert(http_request.new_from_uri("http://example.com"):go())
+local body = assert(stream:get_body_as_string())
+if headers:get ":status" ~= "200" then
+    error(body)
+end
+blight.output(body)
